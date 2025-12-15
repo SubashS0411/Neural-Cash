@@ -75,8 +75,8 @@ class AppTheme {
         ),
       ),
 
-      // Card Theme (Default to transparent/glassy in custom widgets, but here for fallback)
-      cardTheme: CardTheme(
+      // Card Theme
+      cardTheme: CardThemeData(
         color: neuralDark,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),

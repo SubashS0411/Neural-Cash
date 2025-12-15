@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:iconly/iconly.dart'; // Assuming iconly or use Material Icons
+// iconly import removed
 
 import '../transactions/transactions_page.dart';
 import '../transactions/add_transaction_page.dart';

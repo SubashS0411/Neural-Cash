@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../services/supabase_service.dart';
+import '../../services/ai_service.dart';
 import '../../widgets/glass_container.dart';
 import '../../theme/app_theme.dart';
 
@@ -36,22 +37,25 @@ class _AddTransactionPageState extends State<AddTransactionPage> with SingleTick
   }
 
   Future<void> _predict() async {
-    if (_description.text.isEmpty) return;
+    final text = _description.text;
+    if (text.length < 3) return;
+
     setState(() {
       _predicting = true;
       _aiController.repeat(reverse: true);
     });
     
-    // Simulate network delay for "AI"
-    await Future.delayed(const Duration(milliseconds: 1200));
+    // Use Real AI Service
+    // Debounce simulation if needed, but for now direct call
+    await Future.delayed(const Duration(milliseconds: 600)); // UI effect
     
-    // Stub AI logic
-    final conf = (_description.text.length % 10) / 10.0 + 0.5;
+    final result = await AIService().predictCategory(text);
     
     if (mounted) {
       setState(() {
-        _predictedConfidence = conf.clamp(0, 1);
-        _predictedCategoryId = null; 
+        _predictedConfidence = result.confidence;
+        // In a real app we'd map category name to ID
+        // _predictedCategoryId = result.category; 
         _predicting = false;
         _aiController.stop();
         _aiController.reset();
@@ -62,6 +66,13 @@ class _AddTransactionPageState extends State<AddTransactionPage> with SingleTick
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     final svc = SupabaseService(widget.client);
+    
+    // Get final category if not manually selected (logic could be added to allow override)
+    // For now, if AI predicted something high confidence, we might use it.
+    // But since we don't have category IDs loaded here, we'll skip passing ID for now 
+    // or pass the raw category name if schema allowed (schema expects UUID).
+    // Simplification: We will just save confidence for now.
+    
     await svc.addTransaction(
       amount: num.tryParse(_amount.text) ?? 0,
       description: _description.text,

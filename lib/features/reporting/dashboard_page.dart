@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../services/supabase_service.dart';
+import '../../services/brain_service.dart';
 import '../../widgets/glass_container.dart';
 import '../../theme/app_theme.dart';
 
@@ -392,15 +393,19 @@ class _BehavioralInsightCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Map<String, dynamic>? biggest;
-    for (final t in transactions) {
-      if (biggest == null || (t['amount'] as num) > (biggest['amount'] as num)) {
-        biggest = t;
-      }
-    }
+    // 1. Convert DB transactions to format expected by Brain (if map structure matches, good)
+    // Brain expects 'amount' as num.
     
-    // Check if we have enough data
-    if (biggest == null) return const SizedBox.shrink();
+    // Calculate monthly income for threshold (stub for now if profile missing)
+    final income = 50000.0; // Fallback or pass from profile
+    
+    final insight = BrainService().analyzeCrossCut(
+      safeToSpend: safeToSpend, 
+      transactions: transactions, 
+      monthlyIncome: income
+    );
+
+    if (insight == null) return const SizedBox.shrink();
 
     return GlassContainer(
       color: AppTheme.neuralPurple.withOpacity(0.1),
@@ -420,13 +425,13 @@ class _BehavioralInsightCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'AI Insight',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.neuralPurple),
+                Text(
+                  insight.title,
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.neuralPurple),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'High spend on ${biggest['description_raw']}. Consider reducing other budgets.',
+                  insight.message,
                   style: const TextStyle(color: Colors.white70, fontSize: 13),
                 ),
               ],
